@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { NextFunction, Request, Response } from 'express';
 import { ApiError } from '../classes/Errors/ApiError';
 import { ErrorCode } from '../classes/Errors/ErrorCode';

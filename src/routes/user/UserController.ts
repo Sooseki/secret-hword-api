@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Router } from "express"
 import { authentication } from "../../auth/authentication"
 import { createAuthentication } from "../../auth/createAuthentication"
@@ -5,6 +6,7 @@ import { createAuthentication } from "../../auth/createAuthentication"
 const router = Router()
 
 // router.get<{}, IIndexResponse<IUser>, {}, IIndexQuery>('/',
+// eslint-disable-next-line prettier/prettier
 //   async (request, response, next) => {
 
 //     const authVerified = await authentication(request)
