@@ -2,9 +2,6 @@ import {checkIfVotePassed} from './check/check'
 import {initRoles} from './roles/roles'
 import {NB_PLAYER} from './variables/variables'
 
-
-
-
 // Les trucs que l'api doit nous envoyer
 
 // 0 nn 1 ui
