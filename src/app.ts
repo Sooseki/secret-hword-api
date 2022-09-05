@@ -1,82 +1,43 @@
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import express from 'express';
-import helmet from 'helmet';
-import hpp from 'hpp';
-import morgan from 'morgan';
-import swaggerJSDoc from 'swagger-jsdoc';
-import swaggerUi from 'swagger-ui-express';
-import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@config';
-import { Routes } from '@interfaces/routes.interface';
-import errorMiddleware from '@middlewares/error.middleware';
-import { logger, stream } from '@utils/logger';
+import cors from 'cors'
+import express, { json } from 'express'
+import { Log } from './classes/Logging/Log'
+import { DefaultErrorHandler } from './middlewares/error-handler'
+import expressWs from 'express-ws'
+import { USER_ROUTES } from './routes/user/UserController'
 
-class App {
-  public app: express.Application;
-  public env: string;
-  public port: string | number;
+const PORT = process.env.PORT || 5555;
 
-  constructor(routes: Routes[]) {
-    this.app = express();
-    this.env = NODE_ENV || 'development';
-    this.port = PORT || 3000;
+/**
+ * On créé une nouvelle "application" express
+ */
+const app = expressWs(express()).app
 
-    this.initializeMiddlewares();
-    this.initializeRoutes(routes);
-    this.initializeSwagger();
-    this.initializeErrorHandling();
-  }
+/**
+ * On dit à Express que l'on souhaite parser le body des requêtes en JSON
+ *
+ * @example app.post('/', (req) => req.body.prop)
+ */
+app.use(json())
 
-  public listen() {
-    this.app.listen(this.port, () => {
-      logger.info(`=================================`);
-      logger.info(`======= ENV: ${this.env} =======`);
-      logger.info(`🚀 App listening on the port ${this.port}`);
-      logger.info(`=================================`);
-    });
-  }
+/**
+ * On dit à Express que l'on souhaite autoriser tous les noms de domaines
+ * à faire des requêtes sur notre API.
+ */
+app.use(cors())
 
-  public getServer() {
-    return this.app;
-  }
+/**
+ * Toutes les routes CRUD pour les animaux seronts préfixées par `/pets`
+ */
+app.use('/user', USER_ROUTES)
 
-  private initializeMiddlewares() {
-    this.app.use(morgan(LOG_FORMAT, { stream }));
-    this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
-    this.app.use(hpp());
-    this.app.use(helmet());
-    this.app.use(compression());
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(cookieParser());
-  }
+/**
+ * Gestion des erreurs
+ */
+app.use(DefaultErrorHandler)
 
-  private initializeRoutes(routes: Routes[]) {
-    routes.forEach(route => {
-      this.app.use('/', route.router);
-    });
-  }
-
-  private initializeSwagger() {
-    const options = {
-      swaggerDefinition: {
-        info: {
-          title: 'REST API',
-          version: '1.0.0',
-          description: 'Example docs',
-        },
-      },
-      apis: ['swagger.yaml'],
-    };
-
-    const specs = swaggerJSDoc(options);
-    this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
-  }
-
-  private initializeErrorHandling() {
-    this.app.use(errorMiddleware);
-  }
-}
-
-export default App;
+/**
+ * On demande à Express d'ecouter les requêtes sur le port défini dans la config
+ */
+app.listen(PORT, () => {
+  Log(`API Listening on port ${PORT}`)
+})
