@@ -6,13 +6,55 @@ import { DefaultErrorHandler } from './middlewares/error-handler'
 import expressWs from 'express-ws'
 import { USER_ROUTES } from './routes/user/UserController'
 import path from 'path'
+import { Socket } from 'socket.io';
 
-const PORT = process.env.PORT || 5555;
+
+
+/**
+ * @type {Socket}
+ */
 
 /**
  * On créé une nouvelle "application" express
  */
-const app = expressWs(express()).app
+const app = express();
+const http = require('http').createServer(app);
+const port = process.env.PORT || 5555;
+
+
+const io = require("socket.io")(http);
+
+app.use('/jquery', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
+app.use(express.static('public'));
+
+app.get('/game',(req, res) => {
+  res.sendFile(path.join(__dirname, 'template/game/morpion.html'));
+})
+
+http.listen(port, () => {
+  console.log(`Listening on http://localhost:${port}/`);
+});
+
+let rooms = [];
+
+io.on('connection', (socket) => {
+  console.log(`[connection] ${socket.id}`);
+
+  
+    socket.on('disconnect', () => {
+      console.log(`[disconnect] ${socket.id}`);
+      let room = null;
+
+      rooms.forEach(r => {
+          r.players.forEach(p => {
+              if (p.socketId === socket.id && p.host) {
+                  room = r;
+                  rooms = rooms.filter(r => r !== room);
+              }
+          })
+      })
+  });
+});
 
 /**
  * On dit à Express que l'on souhaite parser le body des requêtes en JSON
@@ -34,22 +76,6 @@ app.use(cors())
 
 
 
-// app.use('/', (req, res)=> {
-//   res.sendFile(path.join(__dirname, 'template/base.html'));
-// });
-
-app.ws('/game', async (socket, req)=> {
-  // res.sendFile(path.join(__dirname, 'template/game/test.html'));
-  socket.on('open', (socket) => {
-    console.log(`[connection] ${socket}`)
-  })
-  socket.on("open", function(){
-    socket.send('Hello server')
-  })
-  socket.on('message', async(message) => {
-    console.log(`${message}`)
-  })
-});
 
 
 
@@ -57,15 +83,6 @@ app.ws('/game', async (socket, req)=> {
  * Gestion des erreurs
  */
  app.use(DefaultErrorHandler)
-
-
-/**
- * On demande à Express d'ecouter les requêtes sur le port défini dans la config
- */
-app.listen(PORT, () => {
-  Log(`API Listening on port ${PORT}`)
-
-})
 
 
 
