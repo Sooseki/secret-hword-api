@@ -7,5 +7,3 @@ export const MAJORITY:number = NB_LIB
 export const NB_FASC:number = NB_PLAYER - NB_LIB - 1
 
 // export const PLAYER_ROLE:Array<number> = [0]
-export const NB_FASC_LAW:number = 0
-export const NB_LIB_LAW:number = 0
