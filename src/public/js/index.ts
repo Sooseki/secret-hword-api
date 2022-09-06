@@ -1,1 +1,2 @@
-const Socket = ws();
+/* eslint-disable prettier/prettier */
+const socket = io();
