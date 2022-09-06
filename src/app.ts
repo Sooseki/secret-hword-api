@@ -7,8 +7,7 @@ import expressWs from 'express-ws'
 import { USER_ROUTES } from './routes/user/UserController'
 import path from 'path'
 import { Socket } from 'socket.io';
-
-
+import { Server } from 'socket.io'
 
 /**
  * @type {Socket}
@@ -18,11 +17,18 @@ import { Socket } from 'socket.io';
  * On créé une nouvelle "application" express
  */
 const app = express();
-const http = require('http').createServer(app);
+const http = require('http');
 const port = process.env.PORT || 5555;
 
 
-const io = require("socket.io")(http);
+const server =  http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3001",
+    methods: ["GET", "POST"],
+  }
+})
 
 app.use('/jquery', express.static(path.join(__dirname, 'node_modules/jquery/dist')));
 app.use(express.static('public'));
@@ -31,7 +37,11 @@ app.get('/game',(req, res) => {
   res.sendFile(path.join(__dirname, 'template/game/morpion.html'));
 })
 
-http.listen(port, () => {
+app.get("/david", (req, res) => {
+  res.send("salut")
+})
+
+server.listen(port, () => {
   console.log(`Listening on http://localhost:${port}/`);
 });
 
@@ -39,7 +49,6 @@ let rooms = [];
 
 io.on('connection', (socket) => {
   console.log(`[connection] ${socket.id}`);
-
   
     socket.on('disconnect', () => {
       console.log(`[disconnect] ${socket.id}`);
@@ -73,10 +82,6 @@ app.use(cors())
  * Toutes les routes CRUD pour les animaux seronts préfixées par `/pets`
  */
 // app.ws('/user', USER_ROUTES)
-
-
-
-
 
 
 /**
