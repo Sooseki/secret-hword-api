@@ -5,7 +5,7 @@ import { Log } from './classes/Logging/Log'
 import { DefaultErrorHandler } from './middlewares/error-handler'
 import expressWs from 'express-ws'
 import { USER_ROUTES } from './routes/user/UserController'
-import path from 'path'
+import path from 'path';
 import { Socket } from 'socket.io';
 import { Server } from 'socket.io'
 
@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
 
       let room = null;
 
-      if (!player.roomId) {
+      if (player.roomId === "") {
           room = createRoom(player);
           console.log(`[create room ] - ${room.id} - ${player.username}`);
       } else {

@@ -188,7 +188,7 @@ document.querySelector(".cell").addEventListener("click", function (e) {
 
         player.win = calculateWin(playedCell);
         player.turn = false;
-
+        
         socket.emit('play', player);
     }
 });
