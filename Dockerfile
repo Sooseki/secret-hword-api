@@ -1,5 +1,5 @@
  # Common build stage
-FROM --platform=linux/amd64 node:14.14.0-alpine3.12 as common-build-stage
+FROM node:14.14.0-alpine3.12 as common-build-stage
 
 COPY . ./app
 
@@ -21,4 +21,4 @@ FROM common-build-stage as production-build-stage
 
 ENV NODE_ENV production
 
-CMD ["npm", "run", "start"
+CMD ["npm", "run", "start"]

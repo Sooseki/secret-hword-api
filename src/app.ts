@@ -47,46 +47,46 @@ let rooms = [];
 
 io.on('connection', (socket) => {
   console.log(`[connection] ${socket.id}`);
+  let room = null;
 
-  socket.on('playerData', (player) => {
-      console.log(`[playerData] ${player.username}`);
-      console.log(`[playerRoom] ${player.roomId}`);
-      console.log(`[SocketID] ${player.socketId}`);
-      let room = null;
+  socket.on('joinRoom', (player) => {
+    if (player.roomId === "") {
+        room = createRoom(player);
+        io.to(socket.id).emit("get room", room.id);
+        console.log(`[create room ] - ${room.id} - ${player.username}`);
+    } else {
+        room = rooms.find(r => r.id === player.roomId);
+        if (room === undefined) {
+            return;
+        }
+        player.roomId = room.id;
+        room.players.push(player);
+    }
 
-      if (player.roomId === "") {
-          room = createRoom(player);
-          console.log(`[create room ] - ${room.id} - ${player.username}`);
-      } else {
-          room = rooms.find(r => r.id === player.roomId);
-          if (room === undefined) {
-              return;
-          }
+    socket.join(player.roomId);
+    io.to(player.roomId).emit("player join", player);
+    io.to(socket.id).emit('logged players', room.players);
 
-          player.roomId = room.id;
-          room.players.push(player);
-      }
-    
-      socket.join(room.id);
-      io.to(room.id).emit("player join", player);
-      io.to(socket.id).emit('join room', room.id);
+    // Check if start game
+    if (room.players.length === 2) {
+      io.to(player.roomId).emit('start game', room.players);
+      console.log('[Game start]'+ player.roomId);
+      console.log(room.players);
+    }
+  })
 
-      if (room.players.length === 2) {
-          io.to(room.id).emit('start game', room.players);
-          console.log('[Game start]'+ room.id);
-          console.log(room.players);
-      }
-  });
-
+  // Display list of rooms
   socket.on('get rooms', () => {
       io.to(socket.id).emit('list rooms', rooms);
   });
 
+  // Play
   socket.on('play', (player) => {
       console.log(`[play] ${player.username}`);
       io.to(player.roomId).emit('play', player);
   });
 
+  // Restart the game
   socket.on('play again', (roomId) => {
       const room = rooms.find(r => r.id === roomId);
 
@@ -95,6 +95,7 @@ io.on('connection', (socket) => {
       }
   })
 
+  // Disconnect
   socket.on('disconnect', () => {
       console.log(`[disconnect] ${socket.id}`);
       let room = null;
