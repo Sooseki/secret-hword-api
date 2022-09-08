@@ -146,6 +146,3 @@ app.use(cors())
  * Gestion des erreurs
  */
  app.use(DefaultErrorHandler)
-
-
-
