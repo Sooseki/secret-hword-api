@@ -41,7 +41,6 @@ app.get("/david", (req, res) => {
 })
 
 server.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}/`);
 });
 
 let rooms = [];
@@ -51,7 +50,8 @@ io.on('connection', (socket) => {
 
   socket.on('playerData', (player) => {
       console.log(`[playerData] ${player.username}`);
-
+      console.log(`[playerRoom] ${player.roomId}`);
+      console.log(`[SocketID] ${player.socketId}`);
       let room = null;
 
       if (player.roomId === "") {
@@ -59,7 +59,6 @@ io.on('connection', (socket) => {
           console.log(`[create room ] - ${room.id} - ${player.username}`);
       } else {
           room = rooms.find(r => r.id === player.roomId);
-
           if (room === undefined) {
               return;
           }
@@ -67,13 +66,15 @@ io.on('connection', (socket) => {
           player.roomId = room.id;
           room.players.push(player);
       }
-
+    
       socket.join(room.id);
-
+      io.to(room.id).emit("player join", player);
       io.to(socket.id).emit('join room', room.id);
 
       if (room.players.length === 2) {
           io.to(room.id).emit('start game', room.players);
+          console.log('[Game start]'+ room.id);
+          console.log(room.players);
       }
   });
 
