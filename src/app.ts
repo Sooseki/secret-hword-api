@@ -5,9 +5,10 @@ import { Log } from './classes/Logging/Log'
 import { DefaultErrorHandler } from './middlewares/error-handler'
 import expressWs from 'express-ws'
 import { USER_ROUTES } from './routes/user/UserController'
-import path from 'path';
-import { Socket } from 'socket.io';
+import path from 'path'
+import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
+import {firstPresidentPlayer} from './utils/playerTurn/playerTurn'
 
 /**
  * @type {Socket}
@@ -68,10 +69,8 @@ io.on('connection', (socket) => {
     io.to(socket.id).emit('logged players', room.players);
 
     // Check if start game
-    if (room.players.length === 2) {
-      io.to(player.roomId).emit('start game', room.players);
-      console.log('[Game start]'+ player.roomId);
-      console.log(room.players);
+    if (room.players.length === 3) {
+      io.to(player.roomId).emit('start game', firstPresidentPlayer(room.players));
     }
   })
 
