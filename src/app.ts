@@ -22,6 +22,7 @@ import { getPlayerIndex } from './utils/check/check'
 const app = express();
 const http = require('http');
 const port = process.env.PORT || 5555;
+const nbPlayers = 2;
 
 
 const server =  http.createServer(app);
@@ -49,14 +50,12 @@ server.listen(port, () => {console.log('server listening')
 let rooms = [];
 
 io.on('connection', (socket) => {
-  console.log(`[connection] ${socket.id}`);
   let room = null;
 
   socket.on('joinRoom', (player) => {
     if (player.roomId === "") {
         room = createRoom(player);
         io.to(socket.id).emit("get room", room.id);
-        console.log(`[create room ] - ${room.id} - ${player.username}`);
     } else {
         room = rooms.find(r => r.id === player.roomId);
         if (room === undefined) {
@@ -71,7 +70,7 @@ io.on('connection', (socket) => {
     io.to(socket.id).emit('logged players', room.players);
 
     // Check if start game
-    if (room.players.length === 2) {
+    if (room.players.length === nbPlayers) {
       io.to(player.roomId).emit('start game', firstPresidentPlayer(room.players));
       //here roles are sent
       const roles = initRoles();
@@ -98,7 +97,7 @@ io.on('connection', (socket) => {
   socket.on('play again', (roomId) => {
       const room = rooms.find(r => r.id === roomId);
 
-      if (room && room.players.length === 2) {
+      if (room && room.players.length === nbPlayers) {
           io.to(room.id).emit('play again', room.players);
       }
   });
@@ -123,8 +122,12 @@ io.on('connection', (socket) => {
       })
   });
   socket.on('player vote', (player) => {
-    io.to(player.player.roomId).emit('player voted',player.player);
+    io.to(room.id).emit('player voted',player.player);
     room.players[getPlayerIndex(room.players, player.player)].vote = player.vote;
+    if (player.hasVotedPlayersNumber === nbPlayers) {
+      io.to(room.id).emit('players votes', room.players);
+      console.log("room players", room.players)
+    }
   });
 });
 
