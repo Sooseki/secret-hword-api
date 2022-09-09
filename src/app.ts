@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
     io.to(socket.id).emit('logged players', room.players);
 
     // Check if start game
-    if (room.players.length === 3) {
+    if (room.players.length === 2) {
       io.to(player.roomId).emit('start game', room.players);
       console.log('[Game start]'+ player.roomId);
       console.log(room.players);
