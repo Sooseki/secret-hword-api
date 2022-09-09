@@ -9,6 +9,8 @@ import path from 'path'
 import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
 import {firstPresidentPlayer} from './utils/playerTurn/playerTurn'
+import { initRoles } from './utils/roles/roles'
+import { getPlayerIndex } from './utils/check/check'
 
 /**
  * @type {Socket}
@@ -41,7 +43,7 @@ app.get("/david", (req, res) => {
   res.send("salut")
 })
 
-server.listen(port, () => {
+server.listen(port, () => {console.log('server listening')
 });
 
 let rooms = [];
@@ -69,8 +71,15 @@ io.on('connection', (socket) => {
     io.to(socket.id).emit('logged players', room.players);
 
     // Check if start game
-    if (room.players.length === 3) {
+    if (room.players.length === 2) {
       io.to(player.roomId).emit('start game', firstPresidentPlayer(room.players));
+      //here roles are sent
+      const roles = initRoles();
+      let count = 0;
+      room.players.forEach(player => {
+        io.to(player.socketId).emit('player role', roles[count])
+        count++;
+      });
     }
   })
 
@@ -92,7 +101,12 @@ io.on('connection', (socket) => {
       if (room && room.players.length === 2) {
           io.to(room.id).emit('play again', room.players);
       }
-  })
+  });
+
+  socket.on('selected chancelor', (chancelor) => {
+    io.to(chancelor.roomId).emit('selected chancelor', chancelor)
+    console.log("this is chancelor (back): ", chancelor)
+  });
 
   // Disconnect
   socket.on('disconnect', () => {
@@ -107,6 +121,10 @@ io.on('connection', (socket) => {
               }
           })
       })
+  });
+  socket.on('player vote', (player) => {
+    io.to(player.player.roomId).emit('player voted',player.player);
+    room.players[getPlayerIndex(room.players, player.player)].vote = player.vote;
   });
 });
 
