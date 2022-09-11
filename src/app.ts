@@ -136,6 +136,7 @@ io.on('connection', (socket) => {
     console.log("this is room.cards of get cards : ", room.cards);
     const [cards, cardsToDraw] = draw3Cards(room.cards);
     room.cards = cards;
+    console.log("this is room.cards of get cards² : ", room.cards);
     io.to(room.president.socketId).emit("president cards", cardsToDraw);
   })
   socket.on('president selected cards', (cards) => {
