@@ -12,9 +12,14 @@ export const shuffleLawCards = () => {
   return shuffle(cards);
 }
 
-// export const draw3Cards = (cards:Array<string>) => {
-  
-// }
+export const draw3Cards = (cards:Array<string>) => {
+  const cardsToDraw = new Array(3);
+  cardsToDraw[0] = cards[0];
+  cardsToDraw[1] = cards[1];
+  cardsToDraw[2] = cards[2];
+  cards.slice(3);
+  return [cards, cardsToDraw];
+}
 
 const shuffle = (arrayToShuffle: Array<string>) => {
   arrayToShuffle.sort(() => Math.random() - 0.5);

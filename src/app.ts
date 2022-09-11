@@ -8,7 +8,7 @@ import { USER_ROUTES } from './routes/user/UserController'
 import path from 'path'
 import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
-import {firstPresidentPlayer} from './utils/playerTurn/playerTurn'
+import {draw3Cards, firstPresidentPlayer, shuffleLawCards} from './utils/playerTurn/playerTurn'
 import { initRoles } from './utils/roles/roles'
 import { getPlayerIndex, checkIfVotePassed } from './utils/check/check'
 
@@ -73,6 +73,8 @@ io.on('connection', (socket) => {
     if (room.players.length === nbPlayers) {
       room.president = firstPresidentPlayer(room.players);
       io.to(player.roomId).emit('start game', room.president);
+      room.cards = shuffleLawCards();
+      console.log("this is room.cards : ", room.cards);
       //here roles are sent
       const roles = initRoles();
       let count = 0;
@@ -105,7 +107,7 @@ io.on('connection', (socket) => {
 
   socket.on('selected chancelor', (chancelor) => {
     io.to(chancelor.roomId).emit('selected chancelor', chancelor)
-    console.log("this is chancelor (back): ", chancelor)
+    room.chancelor = chancelor;
   });
 
   // Disconnect
@@ -128,9 +130,21 @@ io.on('connection', (socket) => {
     if (player.hasVotedPlayersNumber === nbPlayers) {
       // io.to(room.id).emit('players votes', room.players);
       io.to(room.id).emit('votes results', checkIfVotePassed(room.players))
-      io.to(room.president.socketId).emit("")
     }
   });
+  socket.on('get cards', () => {
+    console.log("this is room.cards of get cards : ", room.cards);
+    const [cards, cardsToDraw] = draw3Cards(room.cards);
+    room.cards = cards;
+    io.to(room.president.socketId).emit("president cards", cardsToDraw);
+  })
+  socket.on('president selected cards', (cards) => {
+    io.to(room.chancelor.socketId).emit("chancelor cards", cards);
+  })
+  socket.on('chancelor selected card', (selectedLawCard) => {
+    io.to(room.id).emit("selected law card", selectedLawCard);
+  })
+
 });
 
 function createRoom(player) {
