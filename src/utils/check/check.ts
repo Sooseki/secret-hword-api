@@ -1,9 +1,9 @@
 import { MAJORITY } from '../variables/variables';
 
-export const checkIfVotePassed = (votes: Array<number>) => {
+export const checkIfVotePassed = (players: Array<any>) => {
   let countValidVotes = 0;
-  votes.map(vote => {
-    countValidVotes = vote == 1 ? countValidVotes + 1 : countValidVotes;
+  players.map(player => {
+    countValidVotes = player.vote == 1 ? countValidVotes + 1 : countValidVotes;
   });
   return countValidVotes >= MAJORITY;
 };

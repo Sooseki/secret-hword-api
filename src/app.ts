@@ -10,7 +10,7 @@ import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
 import {firstPresidentPlayer} from './utils/playerTurn/playerTurn'
 import { initRoles } from './utils/roles/roles'
-import { getPlayerIndex } from './utils/check/check'
+import { getPlayerIndex, checkIfVotePassed } from './utils/check/check'
 
 /**
  * @type {Socket}
@@ -71,7 +71,8 @@ io.on('connection', (socket) => {
 
     // Check if start game
     if (room.players.length === nbPlayers) {
-      io.to(player.roomId).emit('start game', firstPresidentPlayer(room.players));
+      room.president = firstPresidentPlayer(room.players);
+      io.to(player.roomId).emit('start game', room.president);
       //here roles are sent
       const roles = initRoles();
       let count = 0;
@@ -125,8 +126,9 @@ io.on('connection', (socket) => {
     io.to(room.id).emit('player voted',player.player);
     room.players[getPlayerIndex(room.players, player.player)].vote = player.vote;
     if (player.hasVotedPlayersNumber === nbPlayers) {
-      io.to(room.id).emit('players votes', room.players);
-      console.log("room players", room.players)
+      // io.to(room.id).emit('players votes', room.players);
+      io.to(room.id).emit('votes results', checkIfVotePassed(room.players))
+      io.to(room.president.socketId).emit("")
     }
   });
 });
