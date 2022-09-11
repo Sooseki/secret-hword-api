@@ -8,9 +8,9 @@ import { USER_ROUTES } from './routes/user/UserController'
 import path from 'path'
 import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
-import {draw3Cards, firstPresidentPlayer, shuffleLawCards} from './utils/playerTurn/playerTurn'
+import {draw3Cards, firstPresidentPlayer, shuffleLawCards, selectNextPresident} from './utils/playerTurn/playerTurn'
 import { initRoles } from './utils/roles/roles'
-import { getPlayerIndex, checkIfVotePassed } from './utils/check/check'
+import { getPlayerIndex, checkIfVotePassed, isLibVictory, isFascVictory } from './utils/check/check'
 
 /**
  * @type {Socket}
@@ -22,7 +22,7 @@ import { getPlayerIndex, checkIfVotePassed } from './utils/check/check'
 const app = express();
 const http = require('http');
 const port = process.env.PORT || 5555;
-const nbPlayers = 2;
+const nbPlayers = 3;
 
 
 const server =  http.createServer(app);
@@ -74,12 +74,14 @@ io.on('connection', (socket) => {
       room.president = firstPresidentPlayer(room.players);
       io.to(player.roomId).emit('start game', room.president);
       room.cards = shuffleLawCards();
-      console.log("this is room.cards : ", room.cards);
       //here roles are sent
       const roles = initRoles();
       let count = 0;
       room.players.forEach(player => {
-        io.to(player.socketId).emit('player role', roles[count])
+        io.to(player.socketId).emit('player role', roles[count]);
+        if (roles[count] === "hitler") {
+          room.hitler = player;
+        }
         count++;
       });
     }
@@ -92,7 +94,6 @@ io.on('connection', (socket) => {
 
   // Play
   socket.on('play', (player) => {
-      console.log(`[play] ${player.username}`);
       io.to(player.roomId).emit('play', player);
   });
 
@@ -127,16 +128,20 @@ io.on('connection', (socket) => {
   socket.on('player vote', (player) => {
     io.to(room.id).emit('player voted',player.player);
     room.players[getPlayerIndex(room.players, player.player)].vote = player.vote;
+    console.log("this is hasvotedplayersNB", player.hasVotedPlayersNumber)
     if (player.hasVotedPlayersNumber === nbPlayers) {
       // io.to(room.id).emit('players votes', room.players);
-      io.to(room.id).emit('votes results', checkIfVotePassed(room.players))
+      const votePassed = checkIfVotePassed(room.players)
+      io.to(room.id).emit('votes results', votePassed)
+      if (!votePassed) {
+        room.president = selectNextPresident(room.players, room.president);
+        io.to(room.id).emit('new turn', room.president);
+      }
     }
   });
   socket.on('get cards', () => {
-    console.log("this is room.cards of get cards : ", room.cards);
     const [cards, cardsToDraw] = draw3Cards(room.cards);
     room.cards = cards;
-    console.log("this is room.cards of get cards² : ", room.cards);
     io.to(room.president.socketId).emit("president cards", cardsToDraw);
   })
   socket.on('president selected cards', (cards) => {
@@ -144,6 +149,16 @@ io.on('connection', (socket) => {
   })
   socket.on('chancelor selected card', (selectedLawCard) => {
     io.to(room.id).emit("selected law card", selectedLawCard);
+    room.president = selectNextPresident(room.players, room.president);
+    io.to(room.id).emit('new turn', room.president);
+  })
+  socket.on('check victory', (countLibLaw: number,countFascLaw: number) => {
+    if (isLibVictory(countLibLaw)) {
+      io.to(room.id).emit("victory","liberals");
+    }
+    if (isFascVictory(countFascLaw, room.chancelor.playerId, room.hitler.playerId)) {
+      io.to(room.id).emit("victory", "fascists");
+    }
   })
 
 });
