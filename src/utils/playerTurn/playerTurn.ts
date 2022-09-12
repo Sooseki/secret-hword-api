@@ -1,11 +1,12 @@
 /* eslint-disable prettier/prettier */
-import {LAW_FASC, LAW_LIB } from "../variables/variables";
+import { Player } from "@/types/Player";
+import { LAW_FASC, LAW_LIB } from "../variables/variables";
 
 export const firstPresidentPlayer = (players:[]) => {
   return players[Math.floor(Math.random() * players.length)];
 }
 
-export const selectNextPresident =  (players: any, currentPresident: any) => {
+export const selectNextPresident =  (players: Player[], currentPresident: Player) => {
   let nextPresident = players[0];
   players.map((player, index) => {
     if (player.playerId === currentPresident.playerId) {

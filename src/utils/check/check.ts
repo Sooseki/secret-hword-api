@@ -1,9 +1,10 @@
+import { Player } from '@/types/Player';
 import { MAJORITY } from '../variables/variables';
 
-export const checkIfVotePassed = (players: Array<any>) => {
+export const checkIfVotePassed = (players: Array<Player>) => {
   let countValidVotes = 0;
   players.map(player => {
-    countValidVotes = player.vote == 1 ? countValidVotes + 1 : countValidVotes;
+    countValidVotes = player.vote ? countValidVotes + 1 : countValidVotes;
   });
   return countValidVotes >= MAJORITY;
 };
@@ -27,7 +28,7 @@ export const isFascVictory = (NB_FASC_LAW: number, CHANCELOR_ID: number, HITLER_
   return NB_FASC_LAW === 6 || (NB_FASC_LAW >= 3 && CHANCELOR_ID === HITLER_ID);
 };
 
-export const getPlayerIndex = (players: any, playerToGet: any): number => {
+export const getPlayerIndex = (players: Array<Player>, playerToGet: Player): number => {
   let count = 0;
   let index = -1;
   players.map(player => {
