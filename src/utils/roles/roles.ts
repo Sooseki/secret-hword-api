@@ -6,7 +6,7 @@ export const initRoles = () => {
   return playersArray;
 };
 
-const createRolesArray = () => {
+export const createRolesArray = () => {
   const players = new Array<string>(NB_PLAYER);
   players[0] = 'hitler';
 
