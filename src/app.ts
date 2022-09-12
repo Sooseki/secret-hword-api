@@ -1,10 +1,7 @@
 /* eslint-disable prettier/prettier */
 import cors from 'cors'
 import express, { json } from 'express'
-import { Log } from './classes/Logging/Log'
 import { DefaultErrorHandler } from './middlewares/error-handler'
-import expressWs from 'express-ws'
-import { USER_ROUTES } from './routes/user/UserController'
 import path from 'path'
 import { Socket } from 'socket.io'
 import { Server } from 'socket.io'
@@ -128,7 +125,6 @@ io.on('connection', (socket) => {
   socket.on('player vote', (player) => {
     io.to(room.id).emit('player voted',player.player);
     room.players[getPlayerIndex(room.players, player.player)].vote = player.vote;
-    console.log("this is hasvotedplayersNB", player.hasVotedPlayersNumber)
     if (player.hasVotedPlayersNumber === nbPlayers) {
       // io.to(room.id).emit('players votes', room.players);
       const votePassed = checkIfVotePassed(room.players)

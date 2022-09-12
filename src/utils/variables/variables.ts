@@ -1,5 +1,5 @@
-export const LAW_FASC = 11;
-export const LAW_LIB = 6;
+export const LAW_FASC = 44;
+export const LAW_LIB = 24;
 export const DRAW_LAW_PILE: number = LAW_FASC + LAW_LIB;
 export const NB_PLAYER = 3;
 export const NB_LIB: number = Math.ceil((NB_PLAYER + 1) / 2);
